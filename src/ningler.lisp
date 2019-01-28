@@ -26,7 +26,10 @@
 
 (in-package :cl-user)
 (defpackage ningler
-  (:use :cl))
+  (:use :cl)
+  (:export
+   init-db
+   *handler*))
 (in-package :ningler)
 
 (defvar *app* (make-instance 'ningle:<app>))
@@ -145,6 +148,5 @@
 
 (defvar *handler*
   (clack:clackup 
-   (clack.builder:builder
-    clack.middleware.session:<clack-middleware-session>
-    *app*)))
+   (lack.builder:builder :session *app*)
+   :server :woo))

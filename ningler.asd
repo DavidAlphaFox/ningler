@@ -13,6 +13,8 @@
   :license "MIT"
   :depends-on (:ningle
                :dbi
+               :clack
+               :lack
                :cl-emb)
   :components ((:module "src"
                 :components
