@@ -29,7 +29,8 @@
   (:use :cl)
   (:export
    init-db
-   *handler*))
+   start-server
+   stop-server))
 (in-package :ningler)
 
 (defvar *app* (make-instance 'ningle:<app>))
@@ -46,7 +47,7 @@
 (defparameter *schema*
   (merge-pathnames #P"src/schema.sql" app-config:*base-directory*))
 (defparameter *static*
-  (merge-pathnames #P"src/static/style.css" app-config:*base-directory*))
+  (merge-pathnames #P"src/static/" app-config:*base-directory*))
 
 (defun init-db ()
   "Initialize database with a schema description which is specified in *schema*. This requires SQLite."
@@ -95,6 +96,7 @@
 
 (defun authorize (username password)
   "Trivial authorization. Don't use this method in actual applications."
+  (format t "~A ~A ~%" username password)
   (and (equal username *username*)
        (equal password *password*)))
 
@@ -125,8 +127,9 @@
 
 (setf (ningle:route *app* "/login" :method :POST)
       #'(lambda (params)
-          (if (authorize (getf params :|username|)
-                         (getf params :|password|))
+          (format t "~A~%" params)
+          (if (authorize (cdr (assoc "username" params :test 'string-equal))
+                         (cdr (assoc "password" params :test 'string-equal)))
               (progn (setf (get-session :logged-in) t)
                      (flash "You were logged in.")
                      (redirect "/"))
@@ -141,12 +144,25 @@
           (flash "You were logged out.")
           (redirect "/")))
 
-(setf (ningle:route *app* "/static/*")
-      #'(lambda (params)
-          (declare (ignore params))
-          (list 200 '(:content-type "text/css") (cl-emb:execute-emb *static*))))
+;(setf (ningle:route *app* "/static/*")
+;      #'(lambda (params)
+;          (declare (ignore params))
+;          (list 200 '(:content-type "text/css") (cl-emb:execute-emb *static*))))
 
-(defvar *handler*
-  (clack:clackup 
-   (lack.builder:builder :session *app*)
-   :server :woo))
+(defvar *handler* nil)
+
+(defun start-server ()
+  (setf *handler* (clack:clackup 
+                   (lack.builder:builder
+                    :session
+                    (:static :path "/static/"
+                             :root *static*)
+                    *app*)
+                   :server :woo))
+  *handler*)
+  
+(defun stop-server ()
+  (if (not (equal nil *handler*))
+      (clack:stop
+       *handler*))
+  (setf *handler* nil))
