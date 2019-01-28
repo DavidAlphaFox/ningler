@@ -157,7 +157,9 @@
                     :session
                     (:static :path "/static/"
                              :root *static*)
+                    :backtrace
                     *app*)
+                   :debug nil
                    :server :woo))
   *handler*)
   
