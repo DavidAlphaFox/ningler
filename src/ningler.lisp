@@ -1,3 +1,4 @@
+;; -*- coding: utf-8 -*-
 #|
   ningler.lisp - main program
 
@@ -135,7 +136,7 @@
                      (redirect "/"))
               (with-layout 
                 (cl-emb:execute-emb *login*
-                                    :env '(:logged-in nil :error "Invalid username or password"))))))
+                                    :env '(:logged-in nil :error "无效的用户名或者密码"))))))
 
 (setf (ningle:route *app* "/logout")
       #'(lambda (params)
